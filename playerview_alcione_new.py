@@ -1158,7 +1158,7 @@ def main():
     username = st.session_state["username"]
     ruolo_utente = st.session_state["ruolo_utente"]
  
-    DRIVE_FILE_ID = "1hjBaj7hXhCqNJfAK8juA9cH803KT9s0-"
+    DRIVE_FILE_ID = "1Ed5fbQRJqvbkAPpfqu2GTEAr5y2M9mL7"
     DRIVE_DOWNLOAD_URL = f"https://docs.google.com/spreadsheets/d/{DRIVE_FILE_ID}/export?format=xlsx"
  
     def scarica_da_drive():
