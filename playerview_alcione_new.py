@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime
 import os
-
+ 
 # ── CONFIGURAZIONE PAGINA ──────────────────────────────────────────────────
 st.set_page_config(
     page_title="PlayerView — Alcione Milano",
@@ -11,10 +11,10 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed"
 )
-
+ 
 # ── CSS PREMIUM ALCIONE ───────────────────────────────────────────────────
 LOGO_PATH = "Logo_ALCIONE_Nuova_Stagione.svg"
-
+ 
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap');
@@ -154,87 +154,92 @@ st.markdown("""
         color: #555 !important;
         margin-bottom: 16px !important;
     }
-
+ 
     /* ── MOBILE RESPONSIVE ── */
     @media (max-width: 768px) {
         /* Logo login più piccolo */
         .login-logo img { max-width: 80px !important; }
-
+ 
         /* Titolo PlayerView più piccolo */
         .playerview-title { font-size: 32px !important; }
-
+ 
         /* Header giocatore */
         .player-name { font-size: 28px !important; }
-
+ 
         /* KPI cards: 2 per riga su mobile */
         div[data-testid="column"] {
             min-width: 45% !important;
             flex: 1 1 45% !important;
         }
-
+ 
         /* Font più leggibili */
         div[style*="font-size:44px"] { font-size: 32px !important; }
         div[style*="font-size:42px"] { font-size: 30px !important; }
         div[style*="font-size:38px"] { font-size: 26px !important; }
-
+ 
         /* Padding ridotto */
         .main .block-container {
             padding-left: 12px !important;
             padding-right: 12px !important;
             padding-top: 16px !important;
         }
-
+ 
         /* Iframe clip più basso */
         iframe { height: 200px !important; }
     }
 </style>
 """, unsafe_allow_html=True)
-
+ 
 # ── BENCHMARK PER RUOLO ────────────────────────────────────────────────────
 # Soglie minime di efficacia per ogni principio di gioco, divise per ruolo
 BENCHMARK = {
     "DC": {
-        "Passaggi Tot, Passaggi Sbagliati": ("Passaggi", 75),
-        "Duelli Difensivi Tot, Duelli Difensivi Persi": ("Duelli Difensivi", 65),
-        "Duelli Aerei Tot, Duelli Aerei Persi": ("Duelli Aerei", 60),
-        "Intercetti Tot, Intercetti Sbagliati": ("Intercetti", 60),
+        "Passaggi Tot, Sbagliati": ("Passaggi", 75),
+        "Duelli Difensivi Tot, Persi": ("Duelli Difensivi", 65),
+        "Duelli Aerei Tot, Persi": ("Duelli Aerei", 60),
+        "Intercetti Tot, Sbagliati": ("Intercetti", 60),
     },
     "AS": {
-        "Passaggi Tot, Passaggi Sbagliati": ("Passaggi", 70),
-        "Tiri Tot, Tiri Fuori": ("Tiri", 55),
-        "Dribbling Tot, Dribbling sbagliati": ("Dribbling", 60),
+        "Passaggi Tot, Sbagliati": ("Passaggi", 70),
+        "Tiri Tot, Fuori": ("Tiri", 55),
+        "Dribbling Tot, Sbagliati": ("Dribbling", 60),
         "Tagli a partita": ("Tagli", None),
     },
     "TS": {
-        "Passaggi Tot, Passaggi Sbagliati": ("Passaggi", 70),
-        "Dribbling Tot, Dribbling Sbagliati": ("Dribbling", 55),
-        "Contrasto Tot, Contrasto Sbagliati": ("Contrasto", 65),
-        "Anticipo Tot, Anticipo Sbagliati": ("Anticipo", 60),
+        "Passaggi Tot, Sbagliati": ("Passaggi", 70),
+        "Dribbling Tot, Sbagliati": ("Dribbling", 55),
+        "Contrasto Tot, Sbagliati": ("Contrasto", 65),
+        "Anticipo Tot, Sbagliati": ("Anticipo", 60),
+        "Controllo Tot, Sbagliati": ("Controllo", 65),
+        "Intercetti Tot, Sbagliati": ("Intercetti", 60),
     },
     "CC": {
-        "Passaggi Tot, Passaggi Sbagliati": ("Passaggi", 75),
-        "Dribbling Tot, Dribbling Sbagliati": ("Dribbling", 60),
-        "Controllo Tot, Controllo Sbagliati": ("Controllo", 70),
-        "Tiri Tot, Tiri Fuori": ("Tiri", 55),
-        "Contrasto Tot, Contrasto Sbagliati": ("Contrasto", 65),
-        "Intercetti Tot, Intercetti Sbagliati": ("Intercetti", 60),
+        "Passaggi Tot, Sbagliati": ("Passaggi", 75),
+        "Dribbling Tot, Sbagliati": ("Dribbling", 60),
+        "Controllo Tot, Sbagliati": ("Controllo", 70),
+        "Tiri Tot, Fuori": ("Tiri", 55),
+        "Contrasto Tot, Sbagliati": ("Contrasto", 65),
+        "Intercetti Tot, Sbagliati": ("Intercetti", 60),
+        "Anticipo Tot, Sbagliati": ("Anticipo", 60),
+        "Duelli Aerei Tot, Persi": ("Duelli Aerei", 60),
     },
     "AD": {
-        "Passaggi Tot, Passaggi Sbagliati": ("Passaggi", 70),
-        "Dribbling Tot, Dribbling Sbagliati": ("Dribbling", 60),
-        "Tiri Tot, Tiri Fuori": ("Tiri", 55),
+        "Passaggi Tot, Sbagliati": ("Passaggi", 70),
+        "Dribbling Tot, Sbagliati": ("Dribbling", 60),
+        "Tiri Tot, Fuori": ("Tiri", 55),
         "Tagli a partita": ("Tagli", None),
-        "Contrasto Tot, Contrasto Sbagliati": ("Contrasto", 55),
+        "Contrasto Tot, Sbagliati": ("Contrasto", 55),
+        "Controllo Tot, Sbagliati": ("Controllo", 65),
     },
     "ATT": {
-        "Passaggi Tot, Passaggi Sbagliati": ("Passaggi", 70),
-        "Tiri Tot, Tiri Fuori": ("Tiri", 55),
-        "Controllo Tot, Controllo Sbagliati": ("Controllo", 65),
-        "Dribbling Tot, Dribbling Sbagliati": ("Dribbling", 60),
-        "Anticipo Tot, Anticipo Sbagliati": ("Anticipo", 55),
+        "Passaggi Tot, Sbagliati": ("Passaggi", 70),
+        "Tiri Tot, Fuori": ("Tiri", 55),
+        "Controllo Tot, Sbagliati": ("Controllo", 65),
+        "Dribbling Tot, Sbagliati": ("Dribbling", 60),
+        "Anticipo Tot, Sbagliati": ("Anticipo", 55),
     },
 }
-
+ 
 # ── ANAGRAFICA GIOCATORI ──────────────────────────────────────────────────
 ANAGRAFICA = {
     "demaria": {
@@ -294,7 +299,7 @@ ANAGRAFICA = {
         "peso": "64 kg",
     },
 }
-
+ 
 # ── CREDENZIALI ────────────────────────────────────────────────────────────
 CREDENZIALI = {
     "demaria":    {"password": "1234",  "ruolo": "player", "nome": "Demaria"},
@@ -307,9 +312,9 @@ CREDENZIALI = {
     "ciccarelli": {"password": "1234",  "ruolo": "player", "nome": "Ciccarelli"},
     "coach":      {"password": "admin", "ruolo": "coach",  "nome": "Staff"},
 }
-
+ 
 # ── LETTURA EXCEL ──────────────────────────────────────────────────────────
-
+ 
 def carica_dati_excel(percorso_file):
     """
     Legge il file Excel con due fogli separati:
@@ -390,7 +395,7 @@ def carica_dati_excel(percorso_file):
     except Exception as e:
         st.error(f"Errore nella lettura del file Excel: {e}")
         return {}
-
+ 
 def parse_kpi(kpi_raw, ruolo):
     """
     Converte i valori grezzi dell'Excel in dati strutturati con percentuali.
@@ -454,7 +459,7 @@ def parse_kpi(kpi_raw, ruolo):
                 pass
     
     return kpi_elaborati
-
+ 
 def calcola_rating(kpi_list):
     """Calcola il rating della partita basandosi sulla media degli esiti positivi."""
     percentuali = [k["pct"] for k in kpi_list if k["tipo"] == "percentuale" and k["pct"] is not None]
@@ -463,7 +468,7 @@ def calcola_rating(kpi_list):
     media = sum(percentuali) / len(percentuali)
     rating = 1 + (media / 100) * 9
     return round(rating, 1)
-
+ 
 def get_colore(pct, soglia):
     """Restituisce il colore semaforo."""
     if soglia is None or pct is None:
@@ -473,12 +478,12 @@ def get_colore(pct, soglia):
             return "yellow"
         return "green"
     return "red"
-
+ 
 def get_emoji(colore):
     return {"green": "🟢", "yellow": "🟡", "red": "🔴"}.get(colore, "⚪")
-
+ 
 # ── GRAFICI ────────────────────────────────────────────────────────────────
-
+ 
 def grafico_kpi(kpi_list, key_suffix=""):
     """Grafico a barre orizzontali con i KPI."""
     nomi, pcts, soglie, colori_hex = [], [], [], []
@@ -545,7 +550,7 @@ def grafico_kpi(kpi_list, key_suffix=""):
         bargap=0.3,
     )
     return fig
-
+ 
 def calcola_medie_stagionali(partite, ruolo):
     """Calcola le medie stagionali per ogni KPI su tutte le partite disponibili."""
     totali = {}
@@ -558,12 +563,12 @@ def calcola_medie_stagionali(partite, ruolo):
                 totali[nome] = totali.get(nome, 0) + k["pct"]
                 conteggi[nome] = conteggi.get(nome, 0) + 1
     return {nome: round(totali[nome] / conteggi[nome]) for nome in totali}
-
+ 
 def grafico_trend(partite, ruolo, key_suffix=""):
     """Grafico a linee: andamento KPI partita per partita con media stagionale."""
     if len(partite) < 2:
         return None
-
+ 
     # Raccoglie dati per ogni partita
     labels = [f"{p['partita']}\n{p['data']}" for p in partite]
     kpi_nomi = []
@@ -571,21 +576,21 @@ def grafico_trend(partite, ruolo, key_suffix=""):
     for k in parse_kpi(partite[0]["kpi_raw"], ruolo):
         if k["tipo"] == "percentuale":
             kpi_nomi.append(k["nome"])
-
+ 
     colori_linee = ["#FF6B00", "#00e676", "#00bcd4", "#ffea00", "#e040fb"]
     medie = calcola_medie_stagionali(partite, ruolo)
-
+ 
     fig = go.Figure()
-
+ 
     for i, nome_kpi in enumerate(kpi_nomi):
         valori = []
         for p in partite:
             kpi_list = parse_kpi(p["kpi_raw"], ruolo)
             val = next((k["pct"] for k in kpi_list if k["nome"] == nome_kpi and k["tipo"] == "percentuale"), None)
             valori.append(val)
-
+ 
         colore = colori_linee[i % len(colori_linee)]
-
+ 
         fig.add_trace(go.Scatter(
             x=labels, y=valori,
             mode='lines+markers',
@@ -594,7 +599,7 @@ def grafico_trend(partite, ruolo, key_suffix=""):
             marker=dict(size=8, color=colore),
             connectgaps=True,
         ))
-
+ 
         # Linea media stagionale tratteggiata
         media = medie.get(nome_kpi)
         if media is not None:
@@ -603,7 +608,7 @@ def grafico_trend(partite, ruolo, key_suffix=""):
                 line=dict(color=colore, width=1, dash="dot"),
                 xref="x", yref="y"
             )
-
+ 
     fig.update_layout(
         plot_bgcolor='#0d0d12', paper_bgcolor='#050507',
         font=dict(color='#ffffff', family='Inter'),
@@ -619,8 +624,8 @@ def grafico_trend(partite, ruolo, key_suffix=""):
         height=300,
     )
     return fig
-
-
+ 
+ 
 def grafico_torta(kpi_list, key_suffix=""):
     """Grafico a torta distribuzione positivi/negativi."""
     tot_pos = sum(k["ok"] for k in kpi_list if k["tipo"] == "percentuale")
@@ -655,9 +660,9 @@ def grafico_torta(kpi_list, key_suffix=""):
         )]
     )
     return fig
-
+ 
 # ── LOGIN ──────────────────────────────────────────────────────────────────
-
+ 
 def mostra_login():
     st.markdown("<br>", unsafe_allow_html=True)
     _, col, _ = st.columns([1, 1.2, 1])
@@ -693,8 +698,8 @@ def mostra_login():
             Staff: <span style="color:#FF6B00">coach / admin</span>
         </div>
         """, unsafe_allow_html=True)
-
-
+ 
+ 
 def mostra_giocatore(username, dati_excel, key_prefix=""):
     """Dashboard individuale del giocatore."""
     
@@ -745,7 +750,7 @@ def mostra_giocatore(username, dati_excel, key_prefix=""):
         </div>
         """, unsafe_allow_html=True)
     st.markdown("---")
-
+ 
     # Dati anagrafici
     ana = ANAGRAFICA.get(username, {})
     if ana:
@@ -769,7 +774,7 @@ def mostra_giocatore(username, dati_excel, key_prefix=""):
                 </div>
                 """, unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
-
+ 
     # Rating
     col_r, col_p, col_c = st.columns(3)
     with col_r:
@@ -919,18 +924,18 @@ def mostra_giocatore(username, dati_excel, key_prefix=""):
     
     df_table = pd.DataFrame(rows)
     st.dataframe(df_table, use_container_width=True, hide_index=True)
-
+ 
     # ── STAGIONALE ──
     if len(partite) > 1:
         st.markdown("---")
         st.markdown("##### 📅 Medie Stagionali")
-
+ 
         medie_stagionali = calcola_medie_stagionali(partite, ruolo)
-
+ 
         cols_stag = st.columns(len(medie_stagionali))
         bench = BENCHMARK.get(ruolo, {})
         soglie_map = {info[0]: info[1] for info in bench.values() if info[1] is not None}
-
+ 
         for i, (nome_kpi, media_pct) in enumerate(medie_stagionali.items()):
             with cols_stag[i]:
                 soglia = soglie_map.get(nome_kpi)
@@ -954,7 +959,7 @@ def mostra_giocatore(username, dati_excel, key_prefix=""):
                     <div style="font-size:10px; color:#888;">{bench_text} &nbsp;·&nbsp; {len(partite)} partite</div>
                 </div>
                 """, unsafe_allow_html=True)
-
+ 
     # ── ARCHIVIO CLIP ──
     st.markdown("---")
     st.markdown("##### 🎬 Archivio Clip")
@@ -1024,9 +1029,9 @@ def mostra_giocatore(username, dati_excel, key_prefix=""):
                             st.caption(f"⚠ File non trovato: {clip_path}")
     else:
         st.info("Nessuna clip disponibile per questa partita.")
-
+ 
 # ── VISTA STAFF ────────────────────────────────────────────────────────────
-
+ 
 def mostra_staff(dati_excel):
     """Dashboard staff con tutti i giocatori."""
     col_logo_c, col_info_c = st.columns([1, 7])
@@ -1040,7 +1045,7 @@ def mostra_staff(dati_excel):
         </div>
         <div style="height:2px; background:linear-gradient(90deg, #FF6B00, transparent); margin-top:16px; margin-bottom:8px;"></div>
         """, unsafe_allow_html=True)
-
+ 
     st.markdown("<br>", unsafe_allow_html=True)
     
     # Costruisci tabella riassuntiva da Excel
@@ -1061,13 +1066,13 @@ def mostra_staff(dati_excel):
         medie = calcola_medie_stagionali(partite, ruolo)
         bench = BENCHMARK.get(ruolo, {})
         soglie_map = {info[0]: info[1] for info in bench.values() if info[1] is not None}
-
+ 
         row = {
             "Giocatore": nome,
             "Ruolo": ruolo,
             "Partite": len(partite),
         }
-
+ 
         alert_count = 0
         for nome_kpi, media_pct in medie.items():
             soglia = soglie_map.get(nome_kpi)
@@ -1077,12 +1082,12 @@ def mostra_staff(dati_excel):
             if colore == "red":
                 alert_count += 1
                 alerts.append(f"**{nome}** — {nome_kpi} sotto soglia ({media_pct}% vs benchmark {soglia}%)")
-
+ 
         row["Stato"] = "🔴 ALERT" if alert_count > 0 else ("🟡 ATTENZIONE" if any(
             get_colore(m, soglie_map.get(n)) == "yellow"
             for n, m in medie.items()
         ) else "🟢 OK")
-
+ 
         rows_coach.append(row)
     
     # Alert banner
@@ -1134,9 +1139,9 @@ def mostra_staff(dati_excel):
                         st.metric(k["nome"], f"{k['pct']}%")
                     else:
                         st.metric(k["nome"], f"{k['tot']}")
-
+ 
 # ── MAIN ───────────────────────────────────────────────────────────────────
-
+ 
 def main():
     # Inizializza session state
     if "logged_in" not in st.session_state:
@@ -1149,13 +1154,13 @@ def main():
     # ── GESTIONE FILE EXCEL ──────────────────────────────────────────────
     # Il file Excel viene scaricato da Google Drive al primo accesso
     # oppure quando si preme il tasto "Aggiorna Dati"
-
+ 
     username = st.session_state["username"]
     ruolo_utente = st.session_state["ruolo_utente"]
-
+ 
     DRIVE_FILE_ID = "1hjBaj7hXhCqNJfAK8juA9cH803KT9s0-"
     DRIVE_DOWNLOAD_URL = f"https://docs.google.com/spreadsheets/d/{DRIVE_FILE_ID}/export?format=xlsx"
-
+ 
     def scarica_da_drive():
         import requests
         import io
@@ -1170,12 +1175,12 @@ def main():
         except Exception as e:
             st.error(f"Errore nel download: {e}")
             return False
-
+ 
     # Scarica automaticamente al primo accesso
     if "excel_bytes" not in st.session_state:
         with st.spinner("Caricamento dati in corso..."):
             scarica_da_drive()
-
+ 
     # Tasto aggiorna nella sidebar (visibile a tutti)
     with st.sidebar:
         st.markdown("### 🔄 Dati")
@@ -1188,7 +1193,7 @@ def main():
                     st.rerun()
                 else:
                     st.error("❌ Errore nel download. Riprova.")
-
+ 
     # Carica dati da session state o fallback locale
     import io
     if "excel_bytes" in st.session_state:
@@ -1205,14 +1210,14 @@ def main():
             if os.path.exists(percorso):
                 file_excel = percorso
                 break
-
+ 
         if file_excel is None:
             st.warning("⚠️ Dati non disponibili. Premi 'Aggiorna Dati' nel pannello laterale.")
             if st.button("Esci"):
                 st.session_state["logged_in"] = False
                 st.rerun()
             return
-
+ 
         dati_excel = carica_dati_excel(file_excel)
     
     # Top bar premium
@@ -1243,6 +1248,7 @@ def main():
                                  [u for u, c in CREDENZIALI.items() if c["ruolo"] == "player"],
                                  format_func=lambda x: CREDENZIALI[x]["nome"])
             mostra_giocatore(scelta, dati_excel, key_prefix="coach_detail")
-
+ 
 if __name__ == "__main__":
     main()
+ 
